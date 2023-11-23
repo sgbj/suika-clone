@@ -102,7 +102,7 @@ class Main extends Phaser.Scene {
       .text(
         +this.game.config.width / 2,
         +this.game.config.height / 2,
-        "New Game",
+        "Game Over",
         {
           fontFamily: "Pirata One",
           fontSize: "40px",
