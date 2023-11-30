@@ -2,5 +2,13 @@ body {
   height: 100vh;
   margin: 0;
   overflow: hidden;
-  background-image: radial-gradient(#000000, #111111);
+  background-image: url(/background.jpg);
+  background-size: cover;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+canvas {
+  border-radius: 20px;
 }

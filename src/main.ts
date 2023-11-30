@@ -29,6 +29,8 @@ class Main extends Phaser.Scene {
   gameOver = false;
 
   preload() {
+    this.load.image("tombstone", "tombstone.png");
+
     for (const fruit of fruits) {
       this.load.image(`${fruit.name}`, `${fruit.name}.png`);
     }
@@ -39,7 +41,7 @@ class Main extends Phaser.Scene {
       .setTexture(fruit.name)
       .setName(fruit.name)
       .setDisplaySize(fruit.radius * 2, fruit.radius * 2)
-      .setY(fruit.radius + 110);
+      .setY(fruit.radius + 205);
     this.setDropperX(this.input.activePointer.x);
 
     this.group.getChildren().forEach((gameObject) => {
@@ -54,11 +56,12 @@ class Main extends Phaser.Scene {
   }
 
   setDropperX(x: number) {
+    const p = 65;
     const r = this.dropper.displayWidth / 2;
-    if (x < r) {
-      x = r;
-    } else if (x > +this.game.config.width - r) {
-      x = +this.game.config.width - r;
+    if (x < r + p) {
+      x = r + p;
+    } else if (x > +this.game.config.width - r - p) {
+      x = +this.game.config.width - r - p;
     }
     this.dropper.setX(x);
   }
@@ -78,13 +81,38 @@ class Main extends Phaser.Scene {
   }
 
   create() {
-    this.matter.world.setBounds();
+    this.add
+      .nineslice(0, 0, "tombstone")
+      .setOrigin(0)
+      .setDisplaySize(+this.game.config.width, +this.game.config.height)
+      .setPipeline("Light2D")
+      .setDepth(-2)
+      .postFX.addBokeh();
+
+    this.add
+      .nineslice(0, 0, "tombstone")
+      .setOrigin(0)
+      .setDisplaySize(+this.game.config.width, +this.game.config.height)
+      .setPipeline("Light2D")
+      .setDepth(-2);
+
+    this.matter.world.setBounds(
+      65,
+      0,
+      +this.game.config.width - 130,
+      +this.game.config.height - 1
+    );
     this.group = this.add.group();
 
     const light = this.lights
-      .addLight(this.input.activePointer.x, this.input.activePointer.y, 100)
-      .setScrollFactor(0)
-      .setIntensity(1);
+      .addLight(
+        this.input.activePointer.x,
+        this.input.activePointer.y,
+        1000,
+        0x4b0082,
+        0.75
+      )
+      .setScrollFactor(0);
     this.lights.enable().setAmbientColor(0xdddddd);
 
     const button = this.add
@@ -93,7 +121,7 @@ class Main extends Phaser.Scene {
         +this.game.config.height / 2,
         260,
         100,
-        0x4b0082
+        0x333333
       )
       .setInteractive({ useHandCursor: true })
       .setPipeline("Light2D")
@@ -106,17 +134,17 @@ class Main extends Phaser.Scene {
         {
           fontFamily: "Pirata One",
           fontSize: "40px",
-          color: "#ffffff",
+          color: "#CCCCCC",
         }
       )
-      .setStroke("#000", 6)
+      .setStroke("#111111", 6)
       .setOrigin(0.5)
       .setVisible(false);
     button.on("pointerover", () => {
-      button.fillColor = 0x6900b4;
+      button.fillColor = 0x444444;
     });
     button.on("pointerout", () => {
-      button.fillColor = 0x4b0082;
+      button.fillColor = 0x333333;
     });
     button.on("pointerup", () => {
       this.score = 0;
@@ -124,16 +152,16 @@ class Main extends Phaser.Scene {
       this.scene.restart();
     });
 
-    this.add.circle(0, -40, 120, 0x4b0082).setPipeline("Light2D");
     const scoreText = this.add
-      .text(0, 0, `${this.score.toLocaleString()}`, {
+      .text(0, 110, `${this.score.toLocaleString()}`, {
         fontFamily: "Pirata One",
-        fontSize: "32px",
+        fontSize: "48px",
         align: "center",
-        fixedWidth: 80,
+        fixedWidth: +this.game.config.width,
       })
-      .setPadding(0, 8)
-      .setStroke("#000", 6);
+      .setColor("#CCCCCC")
+      .setStroke("#333333", 8)
+      .setShadow(2, 2, "#111111", 2, false, true);
 
     this.dropper = this.add.image(
       this.input.activePointer.x,
@@ -155,11 +183,19 @@ class Main extends Phaser.Scene {
 
     this.ceiling = this.matter.add.rectangle(
       +this.game.config.width / 2,
-      50,
+      100,
       +this.game.config.width,
-      100
+      200
     );
     this.ceiling.isStatic = true;
+
+    const line = this.add
+      .rectangle(160, 200, +this.game.config.width - 320, 2, 0xffffff)
+      .setOrigin(0)
+      .setAlpha(0.1)
+      .setDepth(-2);
+    line.postFX.addShine();
+    line.postFX.addGlow();
 
     this.input.on("pointermove", (pointer: Phaser.Input.Pointer) => {
       this.setDropperX(pointer.x);
@@ -239,12 +275,16 @@ class Main extends Phaser.Scene {
 new Phaser.Game({
   scene: [Main],
   width: 600,
-  height: 900,
+  height: 1000,
   scale: {
     mode: Phaser.Scale.ScaleModes.FIT,
   },
-  autoCenter: Phaser.Scale.Center.CENTER_BOTH,
+  autoCenter: Phaser.Scale.Center.CENTER_HORIZONTALLY,
+  transparent: true,
   physics: {
     default: "matter",
+    matter: {
+      debug: false,
+    },
   },
 });
