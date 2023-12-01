@@ -8,17 +8,17 @@ type Fruit = {
 };
 
 const fruits: Fruit[] = [
-  { name: "1", radius: 30 },
-  { name: "2", radius: 35 },
-  { name: "3", radius: 40 },
-  { name: "4", radius: 50 },
-  { name: "5", radius: 65 },
-  { name: "6", radius: 70 },
-  { name: "7", radius: 80 },
-  { name: "8", radius: 90 },
-  { name: "9", radius: 100 },
-  { name: "10", radius: 110 },
-  { name: "11", radius: 120 },
+  { name: "fruit1", radius: 30 },
+  { name: "fruit2", radius: 35 },
+  { name: "fruit3", radius: 40 },
+  { name: "fruit4", radius: 50 },
+  { name: "fruit5", radius: 65 },
+  { name: "fruit6", radius: 70 },
+  { name: "fruit7", radius: 80 },
+  { name: "fruit8", radius: 90 },
+  { name: "fruit9", radius: 100 },
+  { name: "fruit10", radius: 110 },
+  { name: "fruit11", radius: 120 },
 ];
 
 class Main extends Phaser.Scene {
@@ -27,9 +27,16 @@ class Main extends Phaser.Scene {
   group!: Phaser.GameObjects.Group;
   ceiling!: MatterJS.BodyType;
   gameOver = false;
+  renderTexture!: Phaser.GameObjects.RenderTexture;
 
   preload() {
-    this.load.image("tombstone", "tombstone.png");
+    this.load.image("headstone", "Headstone.png");
+
+    this.load.image("newgame", "New Game Button.png");
+
+    for (let i = 0; i <= 9; i++) {
+      this.load.image(`${i}`, `${i}.png`);
+    }
 
     for (const fruit of fruits) {
       this.load.image(`${fruit.name}`, `${fruit.name}.png`);
@@ -80,17 +87,22 @@ class Main extends Phaser.Scene {
       });
   }
 
+  drawScore() {
+    this.renderTexture.clear();
+    const textWidth = this.score
+      .toString()
+      .split("")
+      .reduce((acc, c) => acc + this.textures.get(c).get().width, 0);
+    let x = this.renderTexture.width / 2 - textWidth / 2;
+    for (const c of this.score.toString()) {
+      this.renderTexture.drawFrame(c, undefined, x, 0);
+      x += this.textures.get(c).get().width;
+    }
+  }
+
   create() {
     this.add
-      .nineslice(0, 0, "tombstone")
-      .setOrigin(0)
-      .setDisplaySize(+this.game.config.width, +this.game.config.height)
-      .setPipeline("Light2D")
-      .setDepth(-2)
-      .postFX.addBokeh();
-
-    this.add
-      .nineslice(0, 0, "tombstone")
+      .nineslice(0, 0, "headstone")
       .setOrigin(0)
       .setDisplaySize(+this.game.config.width, +this.game.config.height)
       .setPipeline("Light2D")
@@ -109,42 +121,57 @@ class Main extends Phaser.Scene {
         this.input.activePointer.x,
         this.input.activePointer.y,
         1000,
-        0x4b0082,
+        0x99ffff,
         0.75
       )
       .setScrollFactor(0);
     this.lights.enable().setAmbientColor(0xdddddd);
 
+    const emitter = this.add.particles(0, 0, fruits[0].name, {
+      lifespan: 1000,
+      speed: { min: 200, max: 350 },
+      scale: { start: 0.1, end: 0 },
+      rotate: { start: 0, end: 360 },
+      alpha: { start: 1, end: 0 },
+      gravityY: 200,
+      emitting: false,
+    });
+
+    this.renderTexture = this.add
+      .renderTexture(
+        +this.game.config.width / 2,
+        150,
+        +this.game.config.width,
+        100
+      )
+      .setScale(0.8);
+    this.drawScore();
+
     const button = this.add
-      .rectangle(
+      .image(
         +this.game.config.width / 2,
         +this.game.config.height / 2,
-        260,
-        100,
-        0x333333
+        "newgame"
       )
+      .setScale(0.4)
       .setInteractive({ useHandCursor: true })
-      .setPipeline("Light2D")
       .setVisible(false);
-    const buttonText = this.add
-      .text(
-        +this.game.config.width / 2,
-        +this.game.config.height / 2,
-        "Game Over",
-        {
-          fontFamily: "Pirata One",
-          fontSize: "40px",
-          color: "#CCCCCC",
-        }
-      )
-      .setStroke("#111111", 6)
-      .setOrigin(0.5)
-      .setVisible(false);
+    button.postFX.addGlow(0x000000, 0.75);
     button.on("pointerover", () => {
-      button.fillColor = 0x444444;
+      this.tweens.add({
+        targets: button,
+        scale: 0.425,
+        ease: "Linear",
+        duration: 100,
+      });
     });
     button.on("pointerout", () => {
-      button.fillColor = 0x333333;
+      this.tweens.add({
+        targets: button,
+        scale: 0.4,
+        ease: "Linear",
+        duration: 100,
+      });
     });
     button.on("pointerup", () => {
       this.score = 0;
@@ -152,23 +179,12 @@ class Main extends Phaser.Scene {
       this.scene.restart();
     });
 
-    const scoreText = this.add
-      .text(0, 110, `${this.score.toLocaleString()}`, {
-        fontFamily: "Pirata One",
-        fontSize: "48px",
-        align: "center",
-        fixedWidth: +this.game.config.width,
-      })
-      .setColor("#CCCCCC")
-      .setStroke("#333333", 8)
-      .setShadow(2, 2, "#111111", 2, false, true);
-
     this.dropper = this.add.image(
       this.input.activePointer.x,
       0,
       fruits[0].name
     );
-    const glow = this.dropper.postFX.addGlow(0x4b0082);
+    const glow = this.dropper.postFX.addGlow(0x99ddff);
     this.tweens.addCounter({
       yoyo: true,
       repeat: -1,
@@ -190,7 +206,7 @@ class Main extends Phaser.Scene {
     this.ceiling.isStatic = true;
 
     const line = this.add
-      .rectangle(160, 200, +this.game.config.width - 320, 2, 0xffffff)
+      .rectangle(160, 200, +this.game.config.width - 320, 2, 0xccccff)
       .setOrigin(0)
       .setAlpha(0.1)
       .setDepth(-2);
@@ -239,10 +255,17 @@ class Main extends Phaser.Scene {
             }
 
             this.score += (fruitIndex + 1) * 2;
-            scoreText.setText(`${this.score.toLocaleString()}`);
+            this.drawScore();
 
             pair.bodyA.gameObject.destroy();
             pair.bodyB.gameObject.destroy();
+
+            emitter.setTexture(fruits[fruitIndex].name);
+            emitter.emitParticleAt(
+              pair.bodyB.position.x,
+              pair.bodyB.position.y,
+              10
+            );
 
             const newFruit = fruits[fruitIndex + 1];
 
@@ -266,7 +289,6 @@ class Main extends Phaser.Scene {
     this.events.on("ceilinghit", () => {
       this.gameOver = true;
       button.setVisible(true);
-      buttonText.setVisible(true);
       this.dropper.setVisible(false);
     });
   }

@@ -2,7 +2,7 @@ body {
   height: 100vh;
   margin: 0;
   overflow: hidden;
-  background-image: url(/background.jpg);
+  background-image: url(/Background.jpg);
   background-size: cover;
   display: flex;
   flex-direction: column;
