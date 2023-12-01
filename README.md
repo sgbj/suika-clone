@@ -4,4 +4,4 @@
 
 https://batary.dev/suika-clone/
 
-![Screenshot](https://github.com/sgbj/suika-clone/assets/5178445/48daea5c-fb92-4456-b36d-f81acb0b2ecc)
+![Screenshot](https://github.com/sgbj/suika-clone/assets/5178445/6e2b9948-2d63-473c-b2cf-712bebf20adc)
